@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: financial-data-virtualization
+  profiles:
+    default: local
+  jackson:
+    default-property-inclusion: non_null
+management:
+  endpoints.web.exposure.include: health,info
+
+# 운영 시 password는 환경변수 또는 Secret Manager로 주입하며 파일에 넣지 않는다.
+virtualization:
+  affiliates:
+    bnk-busan-bank: { display-name: "BNK부산은행", dbms: ORACLE, enabled: true, customer-table: CUSTOMER_MASTER }
+    bnk-kyongnam-bank: { display-name: "BNK경남은행", dbms: ORACLE, enabled: true, customer-table: CUSTOMER_MASTER }
+    bnk-capital: { display-name: "BNK캐피탈", dbms: MSSQL, enabled: true, customer-table: CUSTOMER_MASTER }
+    bnk-investment-securities: { display-name: "BNK투자증권", dbms: POSTGRESQL, enabled: true, customer-table: CUSTOMER_MASTER }
+    bnk-system: { display-name: "BNK시스템", dbms: POSTGRESQL, enabled: true, customer-table: CUSTOMER_MASTER }
