@@ -35,11 +35,61 @@ curl -X POST http://localhost:8080/api/v1/virtual-views/products/search \
 
 각 활성 계열사의 결과가 표준 컬럼(`affiliateCode`, `itemCode`, `itemName`, `itemType`, `annualRate`, `status`, `lastChangedAt`)으로 반환된다.
 
+## Local 프로필과 Mock 테스트
+
+`local` 프로필은 실제 금융 계열사 DB에 접속하지 않고 로컬에서 API 흐름을 확인하기 위한 실행 환경이다.
+Spring Boot가 `local` 프로필로 시작되면 `application.yml`과 `application-local.yml`을 병합하고,
+`MockSourceAdapter`를 주입한다. 반대로 `db` 프로필에서는 `JdbcSourceAdapter`를 사용한다.
+
+IntelliJ에서는 `실행(Run) → 구성 편집(Edit Configurations) → VirtualizationApplication`으로 이동한 후
+`활성 프로필(Active profiles)`에 `local`을 입력한다. 실행 콘솔에서 다음 로그가 보이면 Mock 모드가
+활성화된 것이다.
+
+```text
+The following 1 profile is active: "local"
+```
+
+PowerShell에서 직접 실행할 때는 다음 명령을 사용한다.
+
+```powershell
+mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+```
+
+실행 후 아래 요청으로 Mock API를 확인할 수 있다.
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:8080/api/v1/virtual-views/products/search `
+  -ContentType "application/json" `
+  -Body '{"itemName":"테스트 적금"}'
+```
+
+`application-local.yml`에는 부산은행, 캐피탈, 투자증권 세 계열사가 활성화되어 있으므로 정상적인 경우
+Mock 상품이 3건 반환된다. 각 결과의 `affiliateCode`는 서로 다르고 `itemName`은 요청값과 동일하다.
+
+JUnit 테스트 전체 실행:
+
+```powershell
+mvn test
+```
+
+IntelliJ에서는 `VirtualProductServiceJUnit4Test` 클래스 왼쪽의 실행 아이콘을 누른 후
+`VirtualProductServiceJUnit4Test 실행(Run 'VirtualProductServiceJUnit4Test')`을 선택한다.
+이 JUnit4 테스트는 Mockito로 `SourceAdapter`를 주입하고 다음 내용을 검증한다.
+
+- 활성화된 계열사가 Adapter에 전달되는지
+- 요청한 상품명이 Adapter에 전달되는지
+- Mock Adapter가 반환한 `ProductView`가 서비스 결과에 포함되는지
+
+프로필을 실제 DB 모드로 되돌리려면 `활성 프로필(Active profiles)`을 `db`로 변경한다.
+프로필 값을 비워도 `application.yml`에 지정된 기본 프로필 `db`가 사용된다.
+
 ## 실제 DB Adapter 연결 순서
 
 1. 해당 DBMS의 JDBC Driver를 `pom.xml`에 추가한다. Oracle 드라이버는 조직의 라이선스·저장소 정책에 따라 별도 관리한다.
 2. `application.yml`의 계열사별 `jdbc-url`, `username`, `password`를 Secret/환경변수로 주입한다. 계정은 반드시 읽기 전용 계정이어야 한다.
-3. `SourceAdapter` 구현체에서 계열사별 HikariCP DataSource를 독립 생성하고 `PreparedStatement`로 `SourceQuery.sql()`을 실행한다.
+3. `JdbcSourceAdapter`에서 계열사별 HikariCP DataSource를 독립 생성하고 `SourceSqlBuilder`가 만든 SQL을 `PreparedStatement`로 실행한다.
 4. 원천 컬럼과 코드값 차이는 Adapter 또는 별도 Mapper에서 `ProductView`로 변환한다.
 5. 계열사별 pool 크기, connection/query timeout, circuit breaker 및 조회 건수 제한을 추가한다.
 
