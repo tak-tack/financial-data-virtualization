@@ -5,8 +5,21 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SourceSqlBuilderTest {
-    @Test void customerIdConditionIsPushedDown() {
-        var source = new AffiliateProperties.Affiliate(); source.setCustomerTable("CUST_MASTER");
-        assertThat(new SourceSqlBuilder().customerById(source)).contains("FROM CUST_MASTER WHERE CUSTOMER_ID = ?");
+    @Test void itemNameConditionIsPushedDown() {
+        var source = new AffiliateProperties.Affiliate();
+        source.setDbms(AffiliateProperties.Dbms.POSTGRESQL);
+        source.setProductTable("PRODUCT_MASTER");
+        assertThat(new SourceSqlBuilder().productByName(source)).contains("FROM PRODUCT_MASTER WHERE ITEM_NAME = ?");
+    }
+
+    @Test void mysqlColumnsAreMappedToTheStandardProductFields() {
+        var source = new AffiliateProperties.Affiliate();
+        source.setDbms(AffiliateProperties.Dbms.MYSQL);
+        source.setProductTable("AFF_B.FINANCIAL_PRODUCTS");
+
+        assertThat(new SourceSqlBuilder().productByName(source))
+                .contains("PRD_CD AS ITEM_CODE")
+                .contains("USE_YN AS STATUS")
+                .contains("WHERE PRD_NM = ?");
     }
 }

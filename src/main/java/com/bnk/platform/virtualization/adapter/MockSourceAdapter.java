@@ -1,7 +1,8 @@
 package com.bnk.platform.virtualization.adapter;
 
-import com.bnk.platform.virtualization.domain.CustomerView;
-import java.time.LocalDate;
+import com.bnk.platform.virtualization.domain.ProductView;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("local")
 public class MockSourceAdapter implements SourceAdapter {
-    @Override public List<CustomerView> execute(SourceQuery q, String customerId) {
-        return List.of(new CustomerView(q.affiliateCode(), customerId,
-                "테스트고객-" + q.affiliate().getDisplayName(), "INDIVIDUAL", "ACTIVE", LocalDate.of(2024, 1, 15)));
+    @Override public List<ProductView> execute(SourceQuery q, String itemName) {
+        return List.of(new ProductView(q.affiliateCode(), "MOCK-001", itemName,
+                "MOCK", BigDecimal.ZERO, "ACTIVE", OffsetDateTime.parse("2024-01-15T00:00:00+09:00")));
 
     }
 }

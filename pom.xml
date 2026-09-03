@@ -14,8 +14,13 @@
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-actuator</artifactId></dependency>
     <dependency><groupId>com.zaxxer</groupId><artifactId>HikariCP</artifactId></dependency>
     <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><scope>runtime</scope></dependency>
-    <!-- 실제 연계 시 해당 계열사 DBMS JDBC 드라이버 의존성을 별도 추가한다. -->
+    <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><scope>runtime</scope></dependency>
+    <dependency><groupId>com.mysql</groupId><artifactId>mysql-connector-j</artifactId><scope>runtime</scope></dependency>
+    <!-- Oracle JDBC 드라이버는 조직의 라이선스·저장소 정책에 따라 별도 관리한다. -->
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+    <!-- 기존 JUnit 5 테스트와 요청된 JUnit 4 테스트를 함께 실행한다. -->
+    <dependency><groupId>junit</groupId><artifactId>junit</artifactId><version>4.13.2</version><scope>test</scope></dependency>
+    <dependency><groupId>org.junit.vintage</groupId><artifactId>junit-vintage-engine</artifactId><scope>test</scope></dependency>
   </dependencies>
   <build><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build>
 </project>

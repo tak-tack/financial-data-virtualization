@@ -1,8 +1,8 @@
 package com.bnk.platform.virtualization.adapter;
 
-import com.bnk.platform.virtualization.domain.CustomerView;
+import com.bnk.platform.virtualization.domain.ProductView;
 import java.util.List;
 
 public interface SourceAdapter {
-    List<CustomerView> execute(SourceQuery query, String customerId);
+    List<ProductView> execute(SourceQuery query, String itemName);
 }

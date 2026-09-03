@@ -1,18 +1,54 @@
 spring:
   application:
     name: financial-data-virtualization
+  config:
+    import: optional:file:.env[.properties]
   profiles:
-    default: local
+    default: db
   jackson:
     default-property-inclusion: non_null
 management:
   endpoints.web.exposure.include: health,info
 
-# 운영 시 password는 환경변수 또는 Secret Manager로 주입하며 파일에 넣지 않는다.
+# 실제 DB 연동 기본 설정. 계정·비밀번호는 .env 또는 Secret Manager로 주입한다.
 virtualization:
   affiliates:
-    bnk-busan-bank: { display-name: "BNK부산은행", dbms: ORACLE, enabled: true, customer-table: CUSTOMER_MASTER }
-    bnk-kyongnam-bank: { display-name: "BNK경남은행", dbms: ORACLE, enabled: true, customer-table: CUSTOMER_MASTER }
-    bnk-capital: { display-name: "BNK캐피탈", dbms: MSSQL, enabled: true, customer-table: CUSTOMER_MASTER }
-    bnk-investment-securities: { display-name: "BNK투자증권", dbms: POSTGRESQL, enabled: true, customer-table: CUSTOMER_MASTER }
-    bnk-system: { display-name: "BNK시스템", dbms: POSTGRESQL, enabled: true, customer-table: CUSTOMER_MASTER }
+    bnk-busan-bank:
+      display-name: "BNK부산은행_ORACLE_DOCKER" # 화면,로그,Mock 응답 등에 보여줄 계열사의 사람이 읽는 이름
+      dbms: ORACLE
+      # enabled: true # 해당 Data Source를 조회 대상에 포함할지 결정, true면 상품 조회 시 호출한다.
+      jdbc-url: ${ORACLE_JDBC_URL}
+      username: ${ORACLE_USERNAME}
+      password: ${ORACLE_PASSWORD}
+      enabled: false # Oracle JDBC 드라이버와 상품 컬럼 매핑을 추가한 뒤 활성화
+      product-table: TB_FIN_PRODUCT
+
+#    bnk-kyongnam-bank:
+#      display-name: "BNK경남은행"
+#      dbms: ORACLE
+#      enabled: true
+#      product-table: PRODUCT_MASTER
+
+    bnk-capital:
+      display-name: "BNK캐피탈"
+      dbms: MYSQL
+      enabled: true
+      jdbc-url: ${MYSQL_JDBC_URL}
+      username: ${MYSQL_USERNAME}
+      password: ${MYSQL_PASSWORD}
+      product-table: AFF_B.FINANCIAL_PRODUCTS
+
+    bnk-investment-securities:
+      display-name: "BNK투자증권"
+      dbms: POSTGRESQL
+      enabled: true
+      jdbc-url: ${POSTGRES_JDBC_URL}
+      username: ${POSTGRES_USERNAME}
+      password: ${POSTGRES_PASSWORD}
+      product-table: aff_c.product_master
+
+#    bnk-system:
+#      display-name: "BNK시스템"
+#      dbms: POSTGRESQL
+#      enabled: true
+#      product-table: PRODUCT_MASTER

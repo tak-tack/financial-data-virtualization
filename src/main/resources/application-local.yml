@@ -1,0 +1,29 @@
+# local 프로필 전용 설정. --spring.profiles.active=local 로 실행하면 자동 적용된다.
+virtualization:
+  affiliates:
+    bnk-busan-bank:
+      display-name: "BNK부산은행_ORACLE_MOCK"
+      dbms: ORACLE
+      enabled: true
+      jdbc-url: mock
+      username: mock
+      password: mock
+      product-table: TB_FIN_PRODUCT
+
+    bnk-capital:
+      display-name: "BNK캐피탈_MYSQL_MOCK"
+      dbms: MYSQL
+      enabled: true
+      jdbc-url: mock
+      username: mock
+      password: mock
+      product-table: PRODUCT_MASTER
+
+    bnk-investment-securities:
+      display-name: "BNK투자증권_POSTGRESQL_MOCK"
+      dbms: POSTGRESQL
+      enabled: true
+      jdbc-url: mock
+      username: mock
+      password: mock
+      product-table: PRODUCT_MASTER
