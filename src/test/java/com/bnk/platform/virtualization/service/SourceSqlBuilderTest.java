@@ -15,11 +15,15 @@ class SourceSqlBuilderTest {
     @Test void mysqlColumnsAreMappedToTheStandardProductFields() {
         var source = new AffiliateProperties.Affiliate();
         source.setDbms(AffiliateProperties.Dbms.MYSQL);
-        source.setProductTable("AFF_B.FINANCIAL_PRODUCTS");
+        source.setProductTable("FINANCIAL_PRODUCTS");
 
         assertThat(new SourceSqlBuilder().productByName(source))
-                .contains("PRD_CD AS ITEM_CODE")
-                .contains("USE_YN AS STATUS")
-                .contains("WHERE PRD_NM = ?");
+                .contains("PRODUCT_ID AS ITEM_CODE")
+                .contains("PRODUCT_TITLE AS ITEM_NAME")
+                .contains("CATEGORY AS ITEM_TYPE")
+                .contains("BASE_RATE AS ANNUAL_RATE")
+                .contains("ENABLED AS STATUS")
+                .contains("MODIFIED_AT AS LAST_CHANGED_AT")
+                .contains("FROM FINANCIAL_PRODUCTS WHERE PRODUCT_TITLE = ?");
     }
 }

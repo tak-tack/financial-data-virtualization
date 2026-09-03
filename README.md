@@ -99,8 +99,8 @@ IntelliJ에서는 `VirtualProductServiceJUnit4Test` 클래스 왼쪽의 실행 �
 
 `application.yml`의 활성 계열사는 모두 조회 대상입니다. PostgreSQL `aff_c.product_master`는
 `ITEM_CODE`, `ITEM_NAME`, `ITEM_TYPE`, `ANNUAL_RATE`, `STATUS`, `LAST_CHANGED_AT` 컬럼을 사용합니다.
-MySQL `AFF_B.FINANCIAL_PRODUCTS`는 `PRD_CD`, `PRD_NM`, `PRD_TYPE_CD`, `INT_RATE`, `USE_YN`,
-`UPD_DTM`을 표준 응답 필드로 변환합니다. 상태값은 통합 코드 테이블을 도입하기 전까지 원본값을 반환합니다.
+MySQL `FINANCIAL_PRODUCTS`는 `PRODUCT_ID`, `PRODUCT_TITLE`, `CATEGORY`, `BASE_RATE`, `ENABLED`,
+`MODIFIED_AT`을 표준 응답 필드로 변환합니다. 상태값은 통합 코드 테이블을 도입하기 전까지 원본값 `1` 또는 `0`을 반환합니다.
 
 ```bash
 mvn spring-boot:run
@@ -113,6 +113,79 @@ curl -X POST http://localhost:8080/api/v1/virtual-views/products/search \
 실제 DB 조회는 `db` 프로필의 `JdbcSourceAdapter`가 수행하며, 연결 실패나 SQL 오류는 해당
 계열사 코드와 함께 HTTP 500으로 반환됩니다. Oracle을 활성화하려면 조직에서 승인한 Oracle JDBC
 드라이버도 Maven 의존성에 제공되어야 합니다.
+
+## DB별 DDL 및 샘플 데이터
+
+아래 SQL은 로컬 DB 연동 테스트를 위한 예시다. 동일한 기본키의 데이터가 이미 있으면 `INSERT`가
+실패하므로 기존 데이터 유무를 확인한 후 실행한다.
+
+### MySQL
+
+MySQL 연결 계정의 기본 데이터베이스는 `AFF_B`이며 애플리케이션은 `FINANCIAL_PRODUCTS` 테이블을
+조회한다.
+
+```sql
+-- AFF_B.FINANCIAL_PRODUCTS definition
+
+CREATE TABLE `FINANCIAL_PRODUCTS` (
+  `PRODUCT_ID` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `PRODUCT_TITLE` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `CATEGORY` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `BASE_RATE` decimal(5,2) DEFAULT NULL,
+  `ENABLED` tinyint(1) NOT NULL DEFAULT '1',
+  `MODIFIED_AT` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`PRODUCT_ID`),
+  CONSTRAINT `CK_FINANCIAL_PRODUCTS_ENABLED` CHECK ((`ENABLED` in (0,1)))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+```sql
+INSERT INTO FINANCIAL_PRODUCTS
+  (PRODUCT_ID, PRODUCT_TITLE, CATEGORY, BASE_RATE, ENABLED, MODIFIED_AT)
+VALUES
+  ('B-CARD-001', 'B 생활신용카드', 'C', NULL, 1, '2026-08-31 01:56:08'),
+  ('B-LOAN-001', 'B 직장인신용대출', 'L', 4.20, 1, '2026-08-31 01:56:08'),
+  ('B-LOAN-002', 'B 판매종료대출', 'L', 5.10, 0, '2026-08-31 01:56:08'),
+  ('B-SAVE-001', 'B 자유적금', 'S', 3.10, 1, '2026-08-31 01:56:08');
+```
+
+### PostgreSQL
+
+PostgreSQL 애플리케이션 계정은 `aff_c` 스키마의 `product_master` 테이블을 조회할 수 있어야 한다.
+
+```sql
+-- aff_c.product_master definition
+
+-- DROP TABLE aff_c.product_master;
+
+CREATE TABLE aff_c.product_master (
+  item_code varchar(20) NOT NULL,
+  item_name varchar(100) NOT NULL,
+  item_type varchar(20) NOT NULL,
+  annual_rate numeric(5, 2) NULL,
+  status varchar(10) DEFAULT 'ACTIVE'::character varying NOT NULL,
+  last_changed_at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT ck_product_master_status CHECK (
+    ((status)::text = ANY (
+      (ARRAY['ACTIVE'::character varying, 'CLOSED'::character varying])::text[]
+    ))
+  ),
+  CONSTRAINT pk_product_master PRIMARY KEY (item_code)
+);
+```
+
+```sql
+INSERT INTO aff_c.product_master
+  (item_code, item_name, item_type, annual_rate, status, last_changed_at)
+VALUES
+  ('C-CARD-001', 'C 생활신용카드', 'C', NULL, 'ACTIVE', '2026-08-31 01:56:08+09'),
+  ('C-LOAN-001', 'C 직장인신용대출', 'L', 4.10, 'ACTIVE', '2026-08-31 01:56:08+09'),
+  ('C-LOAN-002', 'C 판매종료대출', 'L', 5.00, 'CLOSED', '2026-08-31 01:56:08+09'),
+  ('C-SAVE-001', 'C 정기적금', 'S', 3.20, 'ACTIVE', '2026-08-31 01:56:08+09');
+```
+
+샘플 데이터를 넣은 후 `B 자유적금` 또는 `C 정기적금`을 `itemName`으로 전달해 DB별 검색을
+확인할 수 있다.
 
 ## MCP 연계
 

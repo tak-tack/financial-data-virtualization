@@ -36,7 +36,7 @@ virtualization:
       jdbc-url: ${MYSQL_JDBC_URL}
       username: ${MYSQL_USERNAME}
       password: ${MYSQL_PASSWORD}
-      product-table: AFF_B.FINANCIAL_PRODUCTS
+      product-table: FINANCIAL_PRODUCTS
 
     bnk-investment-securities:
       display-name: "BNK투자증권"

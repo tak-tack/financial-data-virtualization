@@ -12,9 +12,9 @@ public class SourceSqlBuilder {
         return switch (source.getDbms()) {
             case POSTGRESQL -> "SELECT ITEM_CODE, ITEM_NAME, ITEM_TYPE, ANNUAL_RATE, STATUS, LAST_CHANGED_AT "
                     + "FROM " + table + " WHERE ITEM_NAME = ?";
-            case MYSQL -> "SELECT PRD_CD AS ITEM_CODE, PRD_NM AS ITEM_NAME, PRD_TYPE_CD AS ITEM_TYPE, "
-                    + "INT_RATE AS ANNUAL_RATE, USE_YN AS STATUS, UPD_DTM AS LAST_CHANGED_AT "
-                    + "FROM " + table + " WHERE PRD_NM = ?";
+            case MYSQL -> "SELECT PRODUCT_ID AS ITEM_CODE, PRODUCT_TITLE AS ITEM_NAME, CATEGORY AS ITEM_TYPE, "
+                    + "BASE_RATE AS ANNUAL_RATE, ENABLED AS STATUS, MODIFIED_AT AS LAST_CHANGED_AT "
+                    + "FROM " + table + " WHERE PRODUCT_TITLE = ?";
             default -> throw new IllegalArgumentException("상품 조회 SQL이 아직 정의되지 않은 DBMS: " + source.getDbms());
         };
     }
